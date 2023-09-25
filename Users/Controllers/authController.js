@@ -2,6 +2,8 @@ const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const { Op } = require("sequelize");
 const AllModels = require("../../Utils/allModels");
+const otpGenerate = require("../../Utils/otpGenerate");
+const logger = require('../../Utils/logger');
 
 exports.userSignup = async (req, res) => {
     try {
@@ -31,6 +33,7 @@ exports.userSignup = async (req, res) => {
 
         if (user) {
             const RESPONSE = { error: "User Already Exists" }
+            logger.writeLog(req, RESPONSE, 'view', 'user')
             return res.status(402).json(RESPONSE);
         }
         user = await AllModels.userModel.create(data);
@@ -41,15 +44,18 @@ exports.userSignup = async (req, res) => {
                 message: 'Signup successfully',
                 user: user
             }
+            logger.writeLog(req, RESPONSE, 'view', 'user')
             return res.status(201).json(RESPONSE)
         }
         else {
             const RESPONSE = { error: "Something went wrong" }
+            logger.writeLog(req, RESPONSE, 'view', 'user')
             return res.status(400).json(RESPONSE);
         }
 
     } catch (error) {
         const RESPONSE = { error: error.message }
+        logger.writeLog(req, RESPONSE, 'view', 'user');
         return res.status(500).json(RESPONSE)
     }
 }
@@ -70,6 +76,7 @@ exports.userLogin = async (req, res) => {
 
         if (!user) {
             const RESPONSE = { error: "User not found" }
+            logger.writeLog(req, RESPONSE, 'view', 'user')
             return res.status(401).json(RESPONSE);
         }
 
@@ -82,6 +89,8 @@ exports.userLogin = async (req, res) => {
             }
         });
 
+        // for avoiding continous clicking/otp generation issue
+        // user will have to wait for 30 seconds before he can generate a new otp
         if (userOtp) {
             const timeDifference = Math.floor((new Date() - userOtp.updatedAt) / 1000);
             const otpRegenerationTime = 30;
@@ -89,6 +98,7 @@ exports.userLogin = async (req, res) => {
             if (timeDifference < otpRegenerationTime) {
                 const secondsLeft = otpRegenerationTime - timeDifference;
                 const RESPONSE = { error: `Please wait ${secondsLeft} seconds before generating a new OTP` }
+                logger.writeLog(req, RESPONSE, 'view', 'user')
                 return res.status(429).json(RESPONSE);
             }
         }
@@ -96,6 +106,7 @@ exports.userLogin = async (req, res) => {
         const { Otp, expiryDatetime } = otpGenerate();
         if (!Otp) {
             const RESPONSE = { errors: "Something went wrong. Please try again" }
+            logger.writeLog(req, RESPONSE, 'view', 'user')
             return res
                 .status(500)
                 .json(RESPONSE);
@@ -118,6 +129,7 @@ exports.userLogin = async (req, res) => {
 
         if (userOtp) {
             const RESPONSE = { message: 'OTP sent successfully' }
+            logger.writeLog(req, RESPONSE, 'view', 'user');
             return res.status(200).json(RESPONSE)
         }
 
@@ -125,6 +137,7 @@ exports.userLogin = async (req, res) => {
 
     } catch (error) {
         const RESPONSE = { error: error.message }
+        logger.writeLog(req, RESPONSE, 'view', 'user');
         return res.status(500).json(RESPONSE);
     }
 }
