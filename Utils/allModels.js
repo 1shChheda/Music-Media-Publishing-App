@@ -7,6 +7,7 @@ const Models = {
     userArtistModel: require('../Models/userArtist'),
     primaryArtistModel: require('../Models/primaryArtist'),
     featuringArtistModel: require('../Models/featuringArtist'),
+    addRelease2Model: require('../Models/AddRelease2'),
 }
 
 module.exports = Models
