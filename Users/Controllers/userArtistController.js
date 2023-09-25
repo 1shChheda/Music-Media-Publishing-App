@@ -1,6 +1,7 @@
 const { validationResult } = require("express-validator");
-const { Op } = require("sequelize");
+const Sequelize = require('sequelize');
 const AllModels = require("../../Utils/allModels");
+const logger = require('../../Utils/logger')
 
 exports.addUserArtist = async (req, res) => {
     const {
@@ -14,11 +15,6 @@ exports.addUserArtist = async (req, res) => {
     } = req.body;
 
     try {
-        // to check if a artist with the same song name already exists
-        const existingArtist = await AllModels.userArtistModel.findOne({ where: {  } });
-        if (existingRelease) {
-            return res.status(400).json({ message: 'A release with the same song name already exists.' });
-        }
 
         // to create a new release with the provided fields
         const artist = await AllModels.userArtistModel.create({
@@ -55,9 +51,48 @@ exports.addUserArtist = async (req, res) => {
             })
         }
 
+        logger.writeLog(req, { message: 'artist added successfully.', artist }, "view", 'user')
         return res.status(201).json({ message: 'artist added successfully.', artist });
     } catch (error) {
         console.error('Error adding release:', error);
+        logger.writeLog(req, { message: 'Internal server error. check console' }, "view", 'user')
         return res.status(500).json({ message: 'Internal server error. check console' });
     }
 };
+
+exports.searchArtists = async (req, res) => {
+    const { keyword } = req.query;
+
+    try {
+        const artists = await AllModels.userArtistModel.findAll({
+            where: {
+                [Sequelize.Op.or]: [
+                    { firstName: { [Sequelize.Op.like]: `%${keyword}%` } },
+                    { lastName: { [Sequelize.Op.like]: `%${keyword}%` } },
+                    // { spotifyURL: { [Sequelize.Op.like]: `%${keyword}%` } },
+                    // { appleURL: { [Sequelize.Op.like]: `%${keyword}%` } },
+                    // { instagramURL: { [Sequelize.Op.like]: `%${keyword}%` } },
+                    // { youtubeURL: { [Sequelize.Op.like]: `%${keyword}%` } },
+                ],
+            },
+        });
+
+        return res.status(200).json(artists);
+    } catch (error) {
+        console.error('Error searching artists:', error);
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+
+exports.getAllArtist = async (req, res) => {
+    try {
+        const artist = await AllModels.userArtistModel.findAll();
+        const RESPONSE = { artist: artist };
+        logger.writeLog(req, RESPONSE, "view", 'user')
+        res.status(200).json(RESPONSE);
+    } catch (error) {
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", 'user')
+        return res.status(500).json(RESPONSE);
+    }
+}
