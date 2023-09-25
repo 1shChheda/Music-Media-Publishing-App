@@ -18,7 +18,7 @@ const User = db.define('user',{
         type:Sequelize.DATEONLY,
         allowNull:false
     },
-    countryCode:{
+    phoneCountryCode:{
         type:Sequelize.STRING,
         allowNull:false
     },
