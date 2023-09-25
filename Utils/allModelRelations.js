@@ -20,6 +20,17 @@ const modelRelations = () => {
 
     // between artists and songs
     // one song can have many artist and artist must belong to songs/user(can't decide)
+
+    // user and userArtist (this is done, so that user can write the name of any other artist instead of himself, while adding the release)
+    Models.userModel.hasMany(Models.userArtistModel);
+
+    // userArtist and primaryArtist
+    Models.userArtistModel.hasMany(Models.primaryArtistModel);
+    Models.primaryArtistModel.belongsTo(Models.userArtistModel);
+
+    // userArtist and featuringArtist
+    Models.userArtistModel.hasMany(Models.featuringArtistModel);
+    Models.featuringArtistModel.belongsTo(Models.userArtistModel);
 }
 
 module.exports = modelRelations;

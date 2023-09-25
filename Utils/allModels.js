@@ -4,6 +4,9 @@ const Models = {
     userOtpModel : require('../Models/UserOTP'),
     addRelease1Model  : require('../Models/AddRelease1'),
     assetsModel: require('../Models/Assets'),
+    userArtistModel: require('../Models/userArtist'),
+    primaryArtistModel: require('../Models/primaryArtist'),
+    featuringArtistModel: require('../Models/featuringArtist'),
 }
 
 module.exports = Models
