@@ -15,6 +15,10 @@ app.use(bodyParser.json());
 
 const All_Model_Relationship = require('./Utils/allModelRelations')();
 
+// user routes
+const userRoutes = require('./Utils/allUserRoutes');
+userRoutes.allUserRoutes(app);
+
 // error handling middleware
 // if an error occurs in any of the previous middleware or route handlers, this middleware will be called
 app.use((err, req, res, next) => {
@@ -26,7 +30,7 @@ app.use((err, req, res, next) => {
     return res.status(statusCode).json({ error: errorMessage });
 });
 
-dbConn.sync({ force: true });
+dbConn.sync({ force: false });
 
 app.listen(process.env.PORT, () => {
     console.log(`Server is running at Port ${process.env.PORT}...`);
