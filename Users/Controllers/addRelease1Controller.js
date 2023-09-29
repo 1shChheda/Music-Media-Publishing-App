@@ -43,3 +43,87 @@ exports.addRelease1 = async (req, res) => {
         return res.status(500).json({ message: 'Internal server error.' });
     }
 };
+
+exports.getRelease1 = async (req, res) => {
+    try {
+        // to retrieve all releases from the database
+        const releases = await AllModels.addRelease1Model.findAll({
+            include: [
+                { model: AllModels.genreModel, as: 'genre' },
+                { model: AllModels.subGenreModel, as: 'subgenre' },
+                { model: AllModels.moodModel, as: 'mood' },
+            ]
+        });
+
+        return res.status(200).json({ releases });
+    } catch (error) {
+        console.error('Error retrieving releases:', error);
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+
+exports.updateRelease1 = async (req, res) => {
+    const { id } = req.params;
+    const {
+        songName,
+        labelName,
+        releaseDate,
+        language,
+        genreId,
+        subgenreId,
+        moodId,
+        explicit,
+        ytContentID,
+        userId,
+    } = req.body;
+
+    try {
+        // to check if the release with the provided id exists
+        const release = await AllModels.addRelease1Model.findByPk(id);
+        if (!release) {
+            return res.status(404).json({ message: 'Release not found.' });
+        }
+
+        // to update the release with the provided fields
+        await AllModels.addRelease1Model.update(
+            {
+                songName,
+                labelName,
+                releaseDate,
+                language,
+                genreId,
+                subgenreId,
+                moodId,
+                explicit,
+                ytContentID,
+                userId,
+            },
+            { where: { id } }
+        );
+
+        return res.status(200).json({ message: 'Release updated successfully.' });
+    } catch (error) {
+        console.error('Error updating release:', error);
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+
+exports.deleteRelease1 = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // to check if the release with the provided id exists
+        const release = await AllModels.addRelease1Model.findByPk(id);
+        if (!release) {
+            return res.status(404).json({ message: 'Release not found.' });
+        }
+
+        // to delete the release
+        await AllModels.addRelease1Model.destroy({ where: { id } });
+
+        return res.status(200).json({ message: 'Release deleted successfully.' });
+    } catch (error) {
+        console.error('Error deleting release:', error);
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+};

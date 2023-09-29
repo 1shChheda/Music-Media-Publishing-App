@@ -55,6 +55,7 @@ exports.addRelease2 = async (req, res) => {
     }
 };
 
+// for all AddRelease2 records
 exports.getRelease2 = async (req, res) => {
     try {
         // to retrieve all Release2 records with the specified fields
@@ -117,3 +118,168 @@ exports.getRelease2 = async (req, res) => {
         return res.status(500).json({ message: 'Internal server error.' });
     }
 };
+
+// for a specific AddRelease2 record
+exports.getRelease2sel = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Check if ID is provided
+        if (!id) {
+            logger.writeLog(req, { message: 'ID is required.' }, 'view', 'user')
+            return res.status(400).json({ message: 'ID is required.' });
+        }
+
+        // to retrieve Release2 records with the specified ID
+        const releases = await AllModels.addRelease2Model.findAll({
+            where: { id },
+        });
+
+        if (releases.length === 0) {
+            logger.writeLog(req, { message: 'No records found for the provided ID.' }, 'view', 'user')
+            return res.status(404).json({ message: 'No records found for the provided ID.' });
+        }
+
+        const primaryArtistIds = [];
+        const featuringArtistIds = [];
+
+        releases.forEach((release) => {
+            if (release.primaryArtist) {
+                release.primaryArtist = release.primaryArtist.map(str => parseInt(str.replace(/"/g, "")));
+                primaryArtistIds.push(...release.primaryArtist);
+            }
+            if (release.featuringArtist) {
+                release.featuringArtist = release.featuringArtist.map(str => parseInt(str.replace(/"/g, "")));
+                featuringArtistIds.push(...release.featuringArtist);
+            }
+        });
+
+        console.log("primaryArtistID are: " + primaryArtistIds.join(', '));
+        console.log(primaryArtistIds.length);
+        console.log("featuringArtistID are: " + featuringArtistIds.join(', '));
+        console.log(featuringArtistIds.length);
+
+        for (const release of releases) {
+            const primaryArtistNames = await AllModels.userArtistModel.findAll({
+                where: { id: { [Op.in]: primaryArtistIds } },
+                attributes: ['id', 'firstName', 'lastName']
+            });
+            console.log('Primary Artist Names:');
+            console.log(primaryArtistNames.map(artist => artist.get({ plain: true })));
+
+            release.primaryArtist = primaryArtistNames.map(artist => artist.firstName + " " + artist.lastName);
+        }
+
+        for (const release of releases) {
+            const featuringArtistNames = await AllModels.userArtistModel.findAll({
+                where: { id: { [Op.in]: featuringArtistIds } },
+                attributes: ['id', 'firstName', 'lastName']
+            });
+            console.log('Featuring Artist Names:');
+            console.log(featuringArtistNames.map(artist => artist.get({ plain: true })));
+            release.featuringArtist = featuringArtistNames.map(feat => feat.firstName + " " + feat.lastName)
+        }
+
+        logger.writeLog(req, { message: releases }, 'view', 'user')
+
+        return res.status(200).json(releases);
+    } catch (error) {
+        console.error('Error retrieving Release2:', error);
+        logger.writeLog(req, { message: 'Internal server error.' }, 'view', 'user')
+
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+
+
+exports.getUserData = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Check if userId is provided
+        if (!userId) {
+            logger.writeLog(req, { message: 'userId is required.' }, 'view', 'user')
+
+            return res.status(400).json({ message: 'userId is required.' });
+        }
+
+        // to retrieve addRelease1 records associated with the userId
+        const addRelease1Records = await AllModels.addRelease1Model.findAll({
+            where: { userId },
+            include: [
+                { model: AllModels.genreModel, as: 'genre' },
+                { model: AllModels.subGenreModel, as: 'subgenre' },
+                { model: AllModels.moodModel, as: 'mood' },
+                { model: AllModels.assetsModel, as: 'asset' }, // Include the assets model
+            ]
+        });
+
+        // Check if addRelease1 records exist for the userId
+        if (addRelease1Records.length === 0) {
+            logger.writeLog(req, { message: 'No addRelease1 records found for the provided userId.' }, 'view', 'user')
+
+            return res.status(404).json({ message: 'No addRelease1 records found for the provided userId.' });
+        }
+
+        // to retrieve addRelease2 records associated with the addRelease1 ids
+        const addRelease1Ids = addRelease1Records.map(record => record.id);
+        const addRelease2Records = await AllModels.addRelease2Model.findAll({
+            where: { addRelease1Id: { [Op.in]: addRelease1Ids } },
+        });
+
+
+        // prepare the response data!!
+        const primaryArtistIds = [];
+        const featuringArtistIds = [];
+        const userData = {
+            userId,
+            addRelease1: addRelease1Records,
+            addRelease2: addRelease2Records,
+        };
+
+        const AR2 = userData.addRelease2;
+        for (const map of AR2) {
+            console.log(map.primaryArtist);
+            if (map.primaryArtist) {
+                map.primaryArtist = map.primaryArtist.map(str => parseInt(str.replace(/"/g, "")));
+                primaryArtistIds.push(...map.primaryArtist);
+            }
+            const primaryArtistNames = await AllModels.userArtistModel.findAll({
+                where: { id: { [Op.in]: primaryArtistIds } },
+                attributes: ['id', 'firstName', 'lastName']
+            });
+            console.log('Primary Artist Names:');
+            console.log(primaryArtistNames.map(artist => artist.get({ plain: true })));
+
+            map.primaryArtist = primaryArtistNames.map(artist => artist.firstName + " " + artist.lastName);
+            primaryArtistIds.length = 0;
+        }
+
+        for (const map of AR2) {
+            console.log(map.featuringArtist);
+            if (map.primaryArtist) {
+                map.featuringArtist = map.featuringArtist.map(str => parseInt(str.replace(/"/g, "")));
+                featuringArtistIds.push(...map.featuringArtist);
+            }
+            const featuringArtistNames = await AllModels.userArtistModel.findAll({
+                where: { id: { [Op.in]: featuringArtistIds } },
+                attributes: ['id', 'firstName', 'lastName']
+            });
+            console.log('featuring Artist Names:');
+            console.log(featuringArtistNames.map(artist => artist.get({ plain: true })));
+
+            map.featuringArtist = featuringArtistNames.map(artist => artist.firstName + " " + artist.lastName);
+            featuringArtistIds.length = 0;
+        }
+
+        logger.writeLog(req, userData, 'view', 'user')
+        return res.status(200).json(userData);
+
+    } catch (error) {
+        console.error('Error retrieving user data:', error);
+        logger.writeLog(req, { message: 'Internal server error.' }, 'view', 'user')
+
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+
