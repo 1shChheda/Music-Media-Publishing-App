@@ -18,18 +18,6 @@ const addRelease1 = db.define('addRelease1', {
         type: Sequelize.TEXT,
         allowNull: false
     },
-    genre: {
-        type: Sequelize.TEXT,
-        allowNull: false
-    },
-    subGenre: {
-        type: Sequelize.TEXT,
-        allowNull: false
-    },
-    mood: {
-        type: Sequelize.TEXT,
-        allowNull: false
-    },
     explicit: {
         type: Sequelize.ENUM("Yes", "No"),
         allowNull: false

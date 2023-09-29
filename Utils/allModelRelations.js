@@ -36,6 +36,22 @@ const modelRelations = () => {
     Models.addRelease1Model.hasOne(Models.addRelease2Model);
     // Models.addRelease2Model.hasOne(Models.addRelease1Model);
 
+    // addRelease1 and genre
+    Models.addRelease1Model.belongsTo(Models.genreModel);
+    Models.genreModel.hasMany(Models.addRelease1Model);
+
+    // addRelease1 and subGenre
+    Models.addRelease1Model.belongsTo(Models.subGenreModel);
+    Models.subGenreModel.hasMany(Models.addRelease1Model);
+
+    // addRelease1 and mood
+    Models.addRelease1Model.belongsTo(Models.moodModel);
+    Models.moodModel.hasMany(Models.addRelease1Model);
+
+    // genre and subGenre
+    Models.genreModel.hasMany(Models.subGenreModel);
+    Models.subGenreModel.belongsTo(Models.genreModel);
+
     // addRelease2 and userArtist
     Models.addRelease2Model.hasOne(Models.userArtistModel);
     Models.userArtistModel.belongsTo(Models.addRelease2Model);

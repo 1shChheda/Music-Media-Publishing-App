@@ -64,14 +64,14 @@ exports.getRelease2 = async (req, res) => {
             const featuringArtistIds = [];
 
             releases.forEach((release) => {
-                if (release.primaryArtist) {
-                    release.primaryArtist = release.primaryArtist.map(str => parseInt(str.replace(/"/g, "")));
-                    primaryArtistIds.push(...release.primaryArtist);
-                }
-                if (release.featuringArtist) {
-                    release.featuringArtist = release.featuringArtist.map(str => parseInt(str.replace(/"/g, "")));
-                    featuringArtistIds.push(...release.featuringArtist);
-                }
+                // if (release.primaryArtist) {
+                //   release.primaryArtist = release.primaryArtist.map(str => parseInt(str.replace(/"/g, "")));
+                //   primaryArtistIds.push(...release.primaryArtist);
+                // }
+                // if (release.featuringArtist) {
+                //   release.featuringArtist = release.featuringArtist.map(str => parseInt(str.replace(/"/g, "")));
+                //   featuringArtistIds.push(...release.featuringArtist);
+                // }
             });
 
             console.log("primaryArtistID are: " + primaryArtistIds.join(', '));
@@ -80,6 +80,10 @@ exports.getRelease2 = async (req, res) => {
             console.log(featuringArtistIds.length);
 
             for (const release of releases) {
+                if (release.primaryArtist) {
+                    release.primaryArtist = release.primaryArtist.map(str => parseInt(str.replace(/"/g, "")));
+                    primaryArtistIds.push(...release.primaryArtist);
+                }
                 const primaryArtistNames = await AllModels.userArtistModel.findAll({
                     where: { id: { [Op.in]: primaryArtistIds } },
                     attributes: ['id', 'firstName', 'lastName']
@@ -88,9 +92,14 @@ exports.getRelease2 = async (req, res) => {
                 console.log(primaryArtistNames.map(artist => artist.get({ plain: true })));
 
                 release.primaryArtist = primaryArtistNames.map(artist => artist.firstName + " " + artist.lastName);
+                primaryArtistIds.length = 0
             }
 
             for (const release of releases) {
+                if (release.featuringArtist) {
+                    release.featuringArtist = release.featuringArtist.map(str => parseInt(str.replace(/"/g, "")));
+                    featuringArtistIds.push(...release.featuringArtist);
+                }
                 const featuringArtistNames = await AllModels.userArtistModel.findAll({
                     where: { id: { [Op.in]: featuringArtistIds } },
                     attributes: ['id', 'firstName', 'lastName']
@@ -98,6 +107,7 @@ exports.getRelease2 = async (req, res) => {
                 console.log('Featuring Artist Names:');
                 console.log(featuringArtistNames.map(artist => artist.get({ plain: true })));
                 release.featuringArtist = featuringArtistNames.map(feat => feat.firstName + " " + feat.lastName)
+                featuringArtistIds.length = 0
             }
         }
 
