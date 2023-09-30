@@ -12,6 +12,11 @@ exports.addRelease2 = async (req, res) => {
     } = req.body;
 
     try {
+        // to check if a release with the same song name already exists
+        const existingRelease = await AllModels.addRelease2Model.findOne({ where: { addRelease1Id } });
+        if (existingRelease) {
+            return res.status(400).json({ message: 'A release for the same song already exists.' });
+        }
         // to check the length of primaryArtist and featuringArtist arrays
         const primaryArtistArray = primaryArtist.split('", "').map(item => item.replace(/"/g, ''));
         const featuringArtistArray = featuringArtist.split('", "').map(item => item.replace(/"/g, ''));

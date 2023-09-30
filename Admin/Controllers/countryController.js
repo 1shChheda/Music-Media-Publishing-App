@@ -5,11 +5,11 @@ exports.getCountries = async (req, res) => {
     try {
         const country = await allModels.countryModel.findAll();
         const RESPONSE = { country: country };
-        logger.writeLog(req, RESPONSE, "view", "user");
+        logger.writeLog(req, RESPONSE, "view", "admin");
         res.status(200).json(RESPONSE);
     } catch (error) {
         const RESPONSE = { error: error.message };
-        logger.writeLog(req, RESPONSE, "view", "user");
+        logger.writeLog(req, RESPONSE, "view", "admin");
         return res.status(500).json(RESPONSE);
     }
 }
@@ -25,7 +25,7 @@ exports.postCountry = async (req, res) => {
 
         if (existingCountry) {
             const RESPONSE = { error: 'Country already exists' };
-            logger.writeLog(req, RESPONSE, "view", "user");
+            logger.writeLog(req, RESPONSE, "view", "admin");
             return res.status(400).json(RESPONSE);
         }
 
@@ -36,7 +36,7 @@ exports.postCountry = async (req, res) => {
         });
 
         const RESPONSE = { country: newCountry };
-        logger.writeLog(req, RESPONSE, "view", "user");
+        logger.writeLog(req, RESPONSE, "view", "admin");
         return res.status(200).json(RESPONSE);
     } catch (error) {
         console.log(error);
@@ -56,7 +56,7 @@ exports.updateCountry = async (req, res) => {
 
         if (!existingCountry) {
             const RESPONSE = { error: 'Country not found' };
-            logger.writeLog(req, RESPONSE, "view", "user");
+            logger.writeLog(req, RESPONSE, "view", "admin");
             return res.status(404).json(RESPONSE);
         }
 
@@ -68,12 +68,12 @@ exports.updateCountry = async (req, res) => {
         console.log('Updated country:', existingCountry);
 
         const RESPONSE = { country: existingCountry };
-        logger.writeLog(req, RESPONSE, "view", "user");
+        logger.writeLog(req, RESPONSE, "view", "admin");
         return res.status(200).json(RESPONSE);
     } catch (error) {
         console.log(error);
         const RESPONSE = { error: error.message };
-        logger.writeLog(req, RESPONSE, "view", "user");
+        logger.writeLog(req, RESPONSE, "view", "admin");
         return res.status(500).json(RESPONSE);
     }
 };
@@ -89,7 +89,7 @@ exports.deleteCountry = async (req, res) => {
 
         if (!existingCountry) {
             const RESPONSE = { error: 'Country not found' };
-            logger.writeLog(req, RESPONSE, "view", "user");
+            logger.writeLog(req, RESPONSE, "view", "admin");
             return res.status(404).json(RESPONSE);
         }
 
@@ -99,12 +99,12 @@ exports.deleteCountry = async (req, res) => {
         console.log('Deleted country:', existingCountry);
 
         const RESPONSE = { message: `${existingCountry.countryName} Country deleted successfully` };
-        logger.writeLog(req, RESPONSE, "view", "user");
+        logger.writeLog(req, RESPONSE, "view", "admin");
         return res.status(200).json(RESPONSE);
     } catch (error) {
         console.log(error);
         const RESPONSE = { error: error.message };
-        logger.writeLog(req, RESPONSE, "view", "user");
+        logger.writeLog(req, RESPONSE, "view", "admin");
         return res.status(500).json(RESPONSE);
     }
 };

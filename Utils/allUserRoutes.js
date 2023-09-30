@@ -1,7 +1,6 @@
 exports.allUserRoutes = (app) => {
     app.use(
         "/user",
-        require("../Users/Routes/countryRoute"),
         require("../Users/Routes/authRoute"),
         require('../Users/Routes/addRelease1Route'),
         require('../Users/Routes/addRelease2Route'),
