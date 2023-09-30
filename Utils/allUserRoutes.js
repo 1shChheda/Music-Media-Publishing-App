@@ -9,5 +9,6 @@ exports.allUserRoutes = (app) => {
         require('../Users/Routes/genreRoute'),
         require('../Users/Routes/subGenreRoute'),
         require('../Users/Routes/moodRoute'),
+        require('../Users/Routes/assetRoute'),
     );
 }

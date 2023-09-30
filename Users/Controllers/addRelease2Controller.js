@@ -191,7 +191,83 @@ exports.getRelease2sel = async (req, res) => {
     }
 };
 
+exports.updateRelease2 = async (req, res) => {
+    const { id } = req.params;
+    const {
+        lyricist,
+        composer,
+        primaryArtist,
+        featuringArtist,
+        addRelease1Id
+    } = req.body;
 
+    try {
+        // to check if the release with the provided id exists
+        const release = await AllModels.addRelease2Model.findByPk(id);
+        if (!release) {
+            return res.status(404).json({ message: 'Release not found.' });
+        }
+
+        // to check if composer is provided and update the release
+        if (composer) {
+            release.composer = composer;
+        }
+
+        // to check the length of primaryArtist and featuringArtist arrays
+        if (primaryArtist) {
+            const primaryArtistArray = primaryArtist ? primaryArtist.split(', ').map(item => item.replace(/"/g, '')) : [];
+
+            if (primaryArtistArray.length > 3) {
+                return res.status(400).json({ message: 'Invalid input. primaryArtist should have at most 3 elements and featuringArtist should have at most 10 elements.' });
+            }
+            release.primaryArtist = primaryArtist;
+
+        }
+        if (featuringArtist) {
+            const featuringArtistArray = featuringArtist ? featuringArtist.split(', ').map(item => item.replace(/"/g, '')) : [];
+            console.log("the length is : " + featuringArtistArray.length)
+            if (featuringArtistArray.length > 10) {
+                return res.status(400).json({ message: 'Invalid input. primaryArtist should have at most 3 elements and featuringArtist should have at most 10 elements.' });
+            }
+            release.featuringArtist = featuringArtist;
+        }
+
+        // to update other fields
+        release.lyricist = lyricist || release.lyricist;
+        release.addRelease1Id = addRelease1Id || release.addRelease1Id;
+
+        // to save the updated release object to the database
+        await release.save();
+
+        return res.status(200).json({ message: 'Release updated successfully.', release });
+    } catch (error) {
+        console.error('Error updating release:', error);
+        return res.status(500).json({ message: 'Internal server error. Check console.' });
+    }
+};
+
+exports.deleteRelease = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // to find the release by ID
+        const release = await AllModels.addRelease2Model.findByPk(id);
+
+        if (!release) {
+            return res.status(404).json({ message: 'Release not found.' });
+        }
+
+        // to delete the release
+        await release.destroy();
+
+        return res.status(200).json({ message: 'Release deleted successfully.' });
+    } catch (error) {
+        console.error('Error deleting release:', error);
+        return res.status(500).json({ message: 'Internal server error. Check console.' });
+    }
+};
+
+// to get user's data from both addRelease1 & 2
 exports.getUserData = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -282,4 +358,3 @@ exports.getUserData = async (req, res) => {
         return res.status(500).json({ message: 'Internal server error.' });
     }
 };
-
