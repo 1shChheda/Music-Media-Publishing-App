@@ -18,6 +18,10 @@ app.use(express.static('./Upload'));
 
 const All_Model_Relationship = require('./Utils/allModelRelations')();
 
+// admin routes
+const adminRoutes = require('./Utils/allAdminRoutes');
+adminRoutes.allAdminRoutes(app);
+
 // user routes
 const userRoutes = require('./Utils/allUserRoutes');
 userRoutes.allUserRoutes(app);

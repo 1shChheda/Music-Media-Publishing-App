@@ -11,6 +11,7 @@ const Models = {
     genreModel: require('../Models/Genre'),
     subGenreModel: require('../Models/subGenre'),
     moodModel: require('../Models/Mood'),
+    adminModel: require('../Models/Admin'),
 }
 
 module.exports = Models
