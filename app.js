@@ -13,6 +13,9 @@ const dbConn = require('./Utils/dbConnect');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+// to allow folder access for displaing images
+app.use(express.static('./Upload'));
+
 const All_Model_Relationship = require('./Utils/allModelRelations')();
 
 // user routes
@@ -30,7 +33,7 @@ app.use((err, req, res, next) => {
     return res.status(statusCode).json({ error: errorMessage });
 });
 
-dbConn.sync({ force: false });
+dbConn.sync({ force: true });
 
 app.listen(process.env.PORT, () => {
     console.log(`Server is running at Port ${process.env.PORT}...`);

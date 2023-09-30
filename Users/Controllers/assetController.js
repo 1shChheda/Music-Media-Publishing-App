@@ -3,7 +3,7 @@ const { Op } = require("sequelize");
 const path = require('path');
 const { uploadFile } = require("../Middleware/fileUpload");
 const AllModels = require("../../Utils/allModels");
-
+const { createDirectories } = require('../Middleware/createDirectory');
 
 exports.getAssets = async (req, res) => {
     try {
@@ -42,17 +42,19 @@ exports.addAssets = async (req, res, next) => {
             }
             const userId = addRelease1.userId;
 
+            await createDirectories(`Upload/${userId}/addRelease1Id${addRelease1Id}/artwork`);
+            await createDirectories(`Upload/${userId}/addRelease1Id${addRelease1Id}/music`);
+
             // Upload artwork and audio files
-            const [isArtworkUploaded, artworkData] = await uploadFile(artworkFile, userId, 'artwork/', req.hostname);
-            const [isAudioUploaded, audioData] = await uploadFile(audioFile, userId, 'music/', req.hostname);
+            const urlPort = req.get('host');
+            const [isArtworkUploaded, artworkData] = await uploadFile(artworkFile, userId, `addRelease1Id${addRelease1Id}/artwork/`, urlPort);
+            const [isAudioUploaded, audioData] = await uploadFile(audioFile, userId, `addRelease1Id${addRelease1Id}/music/`, urlPort);
 
             if (isArtworkUploaded && isAudioUploaded) {
-                // Create a new asset with the provided fields
                 const asset = await AllModels.assetsModel.create({
-                    artwork: path.normalize(artworkData.url),
-                    audio: path.normalize(audioData.url),
+                    artwork: '/Upload' + artworkData.url.substring(artworkData.url.indexOf('/Upload') + '/Upload'.length).replace(/\\/g, '/'),
+                    audio: '/Upload' + audioData.url.substring(audioData.url.indexOf('/Upload') + '/Upload'.length).replace(/\\/g, '/'),
                     addRelease1Id: addRelease1Id,
-                    // userId,
                 });
 
                 return res.status(200).json({ asset });
