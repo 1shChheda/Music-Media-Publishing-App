@@ -6,5 +6,6 @@ exports.allAdminRoutes = (app) => {
         require('../Admin/Routes/genreRoute'),
         require('../Admin/Routes/subGenreRoute'),
         require('../Admin/Routes/moodRoute'),
+        require('../Admin/Routes/statusRoute'),
     );
 }

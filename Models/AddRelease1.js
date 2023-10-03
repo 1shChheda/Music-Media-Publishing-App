@@ -25,6 +25,11 @@ const addRelease1 = db.define('addRelease1', {
     ytContentID: {
         type: Sequelize.ENUM("Yes", "No"),
         allowNull: false
+    },
+    status: {
+        type: Sequelize.ENUM('Draft', 'Under Review', 'Verified', 'Live', 'Rejected', 'Taken Down'),
+        allowNull: false,
+        defaultValue: "Under Review"
     }
 
 })
