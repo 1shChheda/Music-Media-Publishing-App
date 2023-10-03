@@ -14,7 +14,7 @@ exports.createAdmin = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const admin = await AllModels.adminModel.create({
-            emailAddress: req.body.email,
+            emailAddress: req.body.emailAddress,
             name: req.body.name,
             password: hashedPassword,
             phoneNo: req.body.phoneNo
@@ -39,46 +39,51 @@ exports.createAdmin = async (req, res) => {
     }
 }
 
-exports.adminLogin = async (req, res) => {
-    const { password } = req.body;
+exports.loginController = async (req, res) => {
+    const { emailAddress, password } = req.body;
 
     try {
         // Check if the user exists
-        // const user = await userModel.allModels.userModel.findOne({ where: { email:req.body.email } });
-        const user = await AllModels.adminModel.findOne({ where: { emailAddress: req.body.email } });
-        if (!user) {
-            // logger.writeLog(req, "User not found", 'view');
-            return res.status(401).json({ error: "Admin not found" });
+        const admin = await AllModels.adminModel.findOne({ where: { emailAddress: emailAddress } });
+        if (!admin) {
+            const RESPONSE = { error: "Admin not found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(401).json(RESPONSE);
         }
 
         // Verify the password
-        const passwordMatch = await bcrypt.compare(password, user.password);
+        const passwordMatch = await bcrypt.compare(password, admin.password);
 
         if (!passwordMatch) {
-            return res.status(401).json({ error: 'Invalid password' });
+            const RESPONSE = { error: 'Invalid Password' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(401).json(RESPONSE);
         }
 
-        // Create and sign the JWT token
-        //now we come to token part
-        const token = jwt.sign({
-            email: user.email,
-        },
-            'secret',
-            {
-                expiresIn: "12h"
-            })
+        const accessToken = jwt.sign(
+            { userID: admin.id, emailAddress: emailAddress },
+            process.env.ADMIN_JWT_SECRET,
+            { expiresIn: "120s" }
+        );
 
+        const refreshToken = jwt.sign(
+            { userID: admin.id, emailAddress: emailAddress },
+            process.env.ADMIN_JWT_REFRESH_SECRET,
+            { expiresIn: "1d" }
+        );
 
-        return res.json({
-            message: 'Logged in Successfully',
-            token: token,
-        })
+        res.cookie("ARjwt", refreshToken);
 
-        //   console.log(req.user.userID)
+        res.cookie("AAjwt", accessToken);
 
-        // return res.json({ token });
+        const RESPONSE = { message: "Login Successful!" };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
+
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: 'Server error' });
+        const RESPONSE = { error: 'Internal Server Error' };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(500).json(RESPONSE);
     }
 };
