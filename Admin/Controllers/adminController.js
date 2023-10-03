@@ -7,8 +7,8 @@ exports.createAdmin = async (req, res) => {
     try {
         const allowedEmailAddresses = ["1shvenom786@gmail.com"]; // I can add more such `super admin`
         const { phoneNo, emailAddress, password, name } = req.body;
-
-        if (!allowedEmailAddresses.includes(emailAddress)) {
+        
+        if (!allowedEmailAddresses.includes(req.admin.emailAddress)) {
             const RESPONSE = { message: "Access Denied" };
             logger.writeLog(req, RESPONSE, "view", "admin");
             return res.status(401).json(RESPONSE);
@@ -16,7 +16,7 @@ exports.createAdmin = async (req, res) => {
         const admin = await AllModels.adminModel.findOne({ where: { emailAddress: emailAddress } });
 
         if (admin) {
-            const RESPONSE = { message: "Email Address Already Exists" };
+            const RESPONSE = { message: "Email Address Already Exists!" };
             logger.writeLog(req, RESPONSE, "view", "admin");
             return res.status(409).json(RESPONSE);
         }
@@ -37,7 +37,7 @@ exports.createAdmin = async (req, res) => {
             return res.status(500).json(RESPONSE);
         }
 
-        const RESPONSE = { message: "Admin Created Successfully", data: newAdmin };
+        const RESPONSE = { message: "Admin Created Successfully!", data: newAdmin };
         logger.writeLog(req, RESPONSE, "view", "admin");
         return res.status(200).json(RESPONSE);
 
@@ -46,4 +46,125 @@ exports.createAdmin = async (req, res) => {
         logger.writeLog(req, RESPONSE, "view", "admin");
         return res.status(500).json(RESPONSE);
     }
-}
+};
+
+exports.getAllAdmins = async (req, res) => {
+    try {
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found!" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
+        const allowedEmailAddresses = ["1shvenom786@gmail.com"]; // I can add more such `super admin`;
+
+        if (!allowedEmailAddresses.includes(req.admin.emailAddress)) {
+            const RESPONSE = { message: "Access Denied" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(401).json(RESPONSE);
+        }
+
+        const admins = await AllModels.adminModel.findAll();
+
+        const RESPONSE = { admins: admins };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
+
+    } catch (error) {
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(500).json(RESPONSE);
+    }
+};
+
+exports.updateAdmin = async (req, res) => {
+    try {
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
+        const allowedEmailAddresses = ["1shvenom786@gmail.com"]; // I can add more such `super admin`;
+
+        if (!allowedEmailAddresses.includes(req.admin.emailAddress)) {
+            const RESPONSE = { message: "Access Denied" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(401).json(RESPONSE);
+        }
+
+        const { phoneNo, emailAddress, password, name, adminId } = req.body;
+
+        if (!adminId) {
+            const RESPONSE = { error: "Please Mention the AdminId!" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
+        const admin = await AllModels.adminModel.findOne({ where: { id: adminId } });
+
+        if (!admin) {
+            const RESPONSE = { error: "Admin Not Found!" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
+        let hashedPassword;
+        // new Password hashing
+        if (password) {
+            const salt = await bcrypt.genSalt(saltRound);
+            hashedPassword = await bcrypt.hash(password, salt);
+        }
+
+        const updatedAdmin = await admin.update({
+            phoneNo: phoneNo || admin.phoneNo,
+            emailAddress: emailAddress || admin.emailAddress,
+            password: hashedPassword || admin.password,
+            name: name || admin.name
+        });
+
+        const RESPONSE = { message: "Admin Updated Successfully!", admin: updatedAdmin };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
+    } catch (error) {
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(500).json(RESPONSE);
+    }
+};
+
+exports.deleteAdmin = async (req, res) => {
+    try {
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
+        const allowedEmailAddresses = ["1shvenom786@gmail.com"]; // I can add more such `super admin`;
+
+        if (!allowedEmailAddresses.includes(req.admin.emailAddress)) {
+            const RESPONSE = { message: "Access Denied" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(401).json(RESPONSE);
+        }
+
+        const adminToBeDeleted = await AllModels.adminModel.findOne({ where: { id: req.params.id }});
+
+        if (!adminToBeDeleted) {
+            const RESPONSE = { error: "No Such Admin Found!" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
+        const admin = await AllModels.adminModel.destroy({ where: { id: req.params.id }});
+
+        const RESPONSE = { message: "Admin Deleted!", admin: adminToBeDeleted };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
+    } catch (error) {
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(500).json(RESPONSE);
+    }
+};

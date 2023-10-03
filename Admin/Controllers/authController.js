@@ -76,7 +76,7 @@ exports.loginController = async (req, res) => {
 
         res.cookie("AAjwt", accessToken);
 
-        const RESPONSE = { message: "Login Successful!" };
+        const RESPONSE = { message: "Login Successful!", admin };
         logger.writeLog(req, RESPONSE, "view", "admin");
         return res.status(200).json(RESPONSE);
 
