@@ -7,7 +7,7 @@ exports.createAdmin = async (req, res) => {
     try {
         const allowedEmailAddresses = ["1shvenom786@gmail.com"]; // I can add more such `super admin`
         const { phoneNo, emailAddress, password, name } = req.body;
-        
+
         if (!allowedEmailAddresses.includes(req.admin.emailAddress)) {
             const RESPONSE = { message: "Access Denied" };
             logger.writeLog(req, RESPONSE, "view", "admin");
@@ -149,7 +149,7 @@ exports.deleteAdmin = async (req, res) => {
             return res.status(401).json(RESPONSE);
         }
 
-        const adminToBeDeleted = await AllModels.adminModel.findOne({ where: { id: req.params.id }});
+        const adminToBeDeleted = await AllModels.adminModel.findOne({ where: { id: req.params.id } });
 
         if (!adminToBeDeleted) {
             const RESPONSE = { error: "No Such Admin Found!" };
@@ -157,7 +157,7 @@ exports.deleteAdmin = async (req, res) => {
             return res.status(404).json(RESPONSE);
         }
 
-        const admin = await AllModels.adminModel.destroy({ where: { id: req.params.id }});
+        const admin = await AllModels.adminModel.destroy({ where: { id: req.params.id } });
 
         const RESPONSE = { message: "Admin Deleted!", admin: adminToBeDeleted };
         logger.writeLog(req, RESPONSE, "view", "admin");
@@ -168,3 +168,37 @@ exports.deleteAdmin = async (req, res) => {
         return res.status(500).json(RESPONSE);
     }
 };
+
+exports.banController = async (req, res) => {
+    try {
+        const userId = req.body.userId;
+        const user = await AllModels.userModel.findByPk(userId);
+        if (!user.active) {
+            return res.status(200).json({
+                message: "User is Already Banned"
+            })
+        }
+        user.active = false;
+        await user.save();
+        res.status(200).json({ message: "User banned" });
+    } catch (error) {
+        res.status(500).send(error);
+    }
+}
+
+exports.removeBanController = async (req, res) => {
+    try {
+        const userId = req.body.userId;
+        const user = await AllModels.userModel.findByPk(userId);
+        if (user.active) {
+            return res.status(200).json({
+                message: "User is Already UnBanned"
+            })
+        }
+        user.active = true;
+        await user.save();
+        res.status(200).json({ message: "User Unbanned" });
+    } catch (error) {
+        res.status(500).send(error);
+    }
+}
