@@ -17,6 +17,13 @@ exports.addRelease1 = async (req, res) => {
     } = req.body;
 
     try {
+        // check whether the userID is banned or not
+        const bannedUser = await AllModels.userModel.findByPk(userId)
+        // console.log(bannedUser.active)
+        if (bannedUser.active == false) {
+            return res.status(400).json({ message: 'Your Account is banned try to contact Admin' });
+        }
+
         // to check if a release with the same song name already exists
         const existingRelease = await AllModels.addRelease1Model.findOne({ where: { songName } });
         if (existingRelease) {
@@ -82,6 +89,22 @@ exports.updateRelease1 = async (req, res) => {
         const release = await AllModels.addRelease1Model.findByPk(id);
         if (!release) {
             return res.status(404).json({ message: 'Release not found.' });
+        }
+
+        const addRelease1 = await AllModels.addRelease1Model.findOne({ where: { id: id } });
+
+        if (!addRelease1) {
+            return res.status(404).json({ message: 'AddRelease1 record not found for the provided addRelease1Id.' });
+        }
+
+        // Print the userID from AddRelease1 model to the console
+        console.log('User ID from AddRelease1:', addRelease1.userId);
+
+        // check whether the userID is banned or not
+        const bannedUser = await AllModels.userModel.findByPk(addRelease1.userId)
+        // console.log(bannedUser.active)
+        if (bannedUser.active == false) {
+            return res.status(400).json({ message: 'Your Account is banned try to contact Admin' });
         }
 
         // to update the release with the provided fields

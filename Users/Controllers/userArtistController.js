@@ -15,6 +15,12 @@ exports.addUserArtist = async (req, res) => {
     } = req.body;
 
     try {
+        //check whether the userID is banned or not
+        const bannedUser = await AllModels.userModel.findByPk(userId)
+        // console.log(bannedUser.active)
+        if (bannedUser.active == false) {
+            return res.status(400).json({ message: 'Your Account is banned try to contact Admin' });
+        }
 
         // to create a new release with the provided fields
         const artist = await AllModels.userArtistModel.create({
@@ -29,33 +35,10 @@ exports.addUserArtist = async (req, res) => {
 
         console.log(artist.id)
         const userArtistId = artist.id
-
-        if (artist) {
-            await AllModels.primaryArtistModel.create({
-                firstName,
-                lastName,
-                spotifyURL,
-                appleURL,
-                instagramURL,
-                youtubeURL,
-                userArtistId
-            })
-            await AllModels.featuringArtistModel.create({
-                firstName,
-                lastName,
-                spotifyURL,
-                appleURL,
-                instagramURL,
-                youtubeURL,
-                userArtistId
-            })
-        }
-
-        logger.writeLog(req, { message: 'artist added successfully.', artist }, "view", 'user')
+        
         return res.status(201).json({ message: 'artist added successfully.', artist });
     } catch (error) {
         console.error('Error adding release:', error);
-        logger.writeLog(req, { message: 'Internal server error. check console' }, "view", 'user')
         return res.status(500).json({ message: 'Internal server error. check console' });
     }
 };

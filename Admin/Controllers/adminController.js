@@ -171,12 +171,26 @@ exports.deleteAdmin = async (req, res) => {
 
 exports.banController = async (req, res) => {
     try {
+
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
+        const allowedEmailAddresses = ["1shvenom786@gmail.com"]; // I can add more such `super admin`;
+        if (!allowedEmailAddresses.includes(req.admin.emailAddress)) {
+            const RESPONSE = { message: "Access Denied" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(401).json(RESPONSE);
+        }
+
         const userId = req.body.userId;
         const user = await AllModels.userModel.findByPk(userId);
         if (!user.active) {
             return res.status(200).json({
                 message: "User is Already Banned"
-            })
+            });
         }
         user.active = false;
         await user.save();
@@ -184,16 +198,30 @@ exports.banController = async (req, res) => {
     } catch (error) {
         res.status(500).send(error);
     }
-}
+};
 
 exports.removeBanController = async (req, res) => {
     try {
+
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
+        const allowedEmailAddresses = ["1shvenom786@gmail.com"]; // I can add more such `super admin`;
+        if (!allowedEmailAddresses.includes(req.admin.emailAddress)) {
+            const RESPONSE = { message: "Access Denied" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(401).json(RESPONSE);
+        }
+
         const userId = req.body.userId;
         const user = await AllModels.userModel.findByPk(userId);
         if (user.active) {
             return res.status(200).json({
                 message: "User is Already UnBanned"
-            })
+            });
         }
         user.active = true;
         await user.save();
@@ -201,4 +229,4 @@ exports.removeBanController = async (req, res) => {
     } catch (error) {
         res.status(500).send(error);
     }
-}
+};

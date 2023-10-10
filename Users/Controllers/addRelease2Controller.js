@@ -17,6 +17,23 @@ exports.addRelease2 = async (req, res) => {
         if (existingRelease) {
             return res.status(400).json({ message: 'A release for the same song already exists.' });
         }
+
+        // Find the AddRelease1 record using the addRelease1Id
+        const addRelease1 = await AllModels.addRelease1Model.findOne({ where: { id: addRelease1Id } });
+
+        if (!addRelease1) {
+            return res.status(404).json({ message: 'AddRelease1 record not found for the provided addRelease1Id.' });
+        }
+
+        // Print the userID from AddRelease1 model to the console
+        console.log('User ID from AddRelease1:', addRelease1.userId);
+        //check whether the userID is banned or not
+        const bannedUser = await AllModels.userModel.findByPk(addRelease1.userId)
+        // console.log(bannedUser.active)
+        if (bannedUser.active == false) {
+            return res.status(400).json({ message: 'Your Account is banned try to contact Admin' });
+        }
+
         // to check the length of primaryArtist and featuringArtist arrays
         const primaryArtistArray = primaryArtist.split('", "').map(item => item.replace(/"/g, ''));
         const featuringArtistArray = featuringArtist.split('", "').map(item => item.replace(/"/g, ''));
@@ -211,6 +228,23 @@ exports.updateRelease2 = async (req, res) => {
         const release = await AllModels.addRelease2Model.findByPk(id);
         if (!release) {
             return res.status(404).json({ message: 'Release not found.' });
+        }
+
+        // Find the AddRelease1 record using the addRelease1Id
+        //  const addRelease1 = await AllModels.AddRelease1.findOne({ where: { id: addRelease1Id } });
+        const addRelease1 = await AllModels.addRelease1Model.findOne({ where: { id: release.addRelease1Id } });
+
+        if (!addRelease1) {
+            return res.status(404).json({ message: 'AddRelease1 record not found for the provided addRelease1Id.' });
+        }
+
+        // Print the userID from AddRelease1 model to the console
+        console.log('User ID from AddRelease1:', addRelease1.userId);
+
+        const bannedUser = await AllModels.userModel.findByPk(addRelease1.userId)
+        // console.log(bannedUser.active)
+        if (bannedUser.active == false) {
+            return res.status(400).json({ message: 'Your Account is banned try to contact Admin' });
         }
 
         // to check if composer is provided and update the release

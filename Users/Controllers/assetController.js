@@ -41,6 +41,17 @@ exports.addAssets = async (req, res, next) => {
                 return res.status(404).json({ error: 'Add Release 1 not found.' });
             }
             const userId = addRelease1.userId;
+            //check whether the userID is banned or not
+            const bannedUser = await AllModels.userModel.findByPk(userId)
+            // console.log(bannedUser.active)
+            if (bannedUser.active == false) {
+                return res.status(400).json({ message: 'Your Account is banned try to contact Admin' });
+            }
+
+            const existingRelease = await AllModels.assetsModel.findOne({ where: { addRelease1Id } });
+            if (existingRelease) {
+                return res.status(400).json({ message: 'Artwork & Music File already exist for the Particular Release. Kindly Update the Assets if required' });
+            }
 
             await createDirectories(`Upload/${userId}/addRelease1Id${addRelease1Id}/artwork`);
             await createDirectories(`Upload/${userId}/addRelease1Id${addRelease1Id}/music`);
@@ -94,6 +105,12 @@ exports.updateAsset = async (req, res) => {
             return res.status(404).json({ error: 'Add Release 1 not found.' });
         }
         const userId = addRelease1.userId;
+        //check whether the userID is banned or not
+        const bannedUser = await AllModels.userModel.findByPk(userId)
+        // console.log(bannedUser.active)
+        if (bannedUser.active == false) {
+            return res.status(400).json({ message: 'Your Account is banned try to contact Admin' });
+        }
 
         // Upload artwork and audio files
         const urlPort = req.get('host')

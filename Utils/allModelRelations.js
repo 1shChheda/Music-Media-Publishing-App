@@ -25,12 +25,12 @@ const modelRelations = () => {
     Models.userModel.hasMany(Models.userArtistModel);
 
     // userArtist and primaryArtist
-    Models.userArtistModel.hasMany(Models.primaryArtistModel);
-    Models.primaryArtistModel.belongsTo(Models.userArtistModel);
+    // Models.userArtistModel.hasMany(Models.primaryArtistModel);
+    // Models.primaryArtistModel.belongsTo(Models.userArtistModel);
 
     // userArtist and featuringArtist
-    Models.userArtistModel.hasMany(Models.featuringArtistModel);
-    Models.featuringArtistModel.belongsTo(Models.userArtistModel);
+    // Models.userArtistModel.hasMany(Models.featuringArtistModel);
+    // Models.featuringArtistModel.belongsTo(Models.userArtistModel);
 
     // addRelease1 and addRelease2
     Models.addRelease1Model.hasOne(Models.addRelease2Model);
@@ -57,12 +57,12 @@ const modelRelations = () => {
     Models.userArtistModel.belongsTo(Models.addRelease2Model);
 
     // addRelease2 and primaryArtist
-    Models.addRelease2Model.hasMany(Models.primaryArtistModel);
-    Models.primaryArtistModel.belongsTo(Models.addRelease2Model);
+    // Models.addRelease2Model.hasMany(Models.primaryArtistModel);
+    // Models.primaryArtistModel.belongsTo(Models.addRelease2Model);
 
     // addRelease2 and featuringArtist
-    Models.addRelease2Model.hasMany(Models.featuringArtistModel);
-    Models.featuringArtistModel.belongsTo(Models.addRelease2Model);
+    // Models.addRelease2Model.hasMany(Models.featuringArtistModel);
+    // Models.featuringArtistModel.belongsTo(Models.addRelease2Model);
 }
 
 module.exports = modelRelations;
