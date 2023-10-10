@@ -3,6 +3,13 @@ const logger = require("../../Utils/logger");
 
 exports.getCountries = async (req, res) => {
     try {
+        
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
         const country = await allModels.countryModel.findAll();
         const RESPONSE = { country: country };
         logger.writeLog(req, RESPONSE, "view", "admin");
@@ -17,6 +24,12 @@ exports.getCountries = async (req, res) => {
 exports.postCountry = async (req, res) => {
     try {
         const { countryCode, countryName } = req.body;
+
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
 
         // to check if the country already exists
         const existingCountry = await allModels.countryModel.findOne({
@@ -48,6 +61,12 @@ exports.updateCountry = async (req, res) => {
     try {
         const { id } = req.params;
         const { countryCode, countryName } = req.body;
+
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
 
         // find the country by ID (from req.params)
         const existingCountry = await allModels.countryModel.findOne({
@@ -81,6 +100,12 @@ exports.updateCountry = async (req, res) => {
 exports.deleteCountry = async (req, res) => {
     try {
         const { id } = req.params;
+
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
 
         // find the country by ID (from req.params)
         const existingCountry = await allModels.countryModel.findOne({

@@ -1,6 +1,7 @@
 const { validationResult } = require("express-validator");
 const { Op } = require("sequelize");
 const AllModels = require("../../Utils/allModels");
+const logger = require("../../Utils/logger");
 
 exports.addRelease2 = async (req, res) => {
     const {
@@ -12,10 +13,19 @@ exports.addRelease2 = async (req, res) => {
     } = req.body;
 
     try {
+
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
         // to check if a release with the same song name already exists
         const existingRelease = await AllModels.addRelease2Model.findOne({ where: { addRelease1Id } });
         if (existingRelease) {
-            return res.status(400).json({ message: 'A release for the same song already exists.' });
+            const RESPONSE = { message: 'A release for the same song already exists.' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(400).json(RESPONSE);
         }
         // to check the length of primaryArtist and featuringArtist arrays
         const primaryArtistArray = primaryArtist.split('", "').map(item => item.replace(/"/g, ''));
@@ -24,7 +34,9 @@ exports.addRelease2 = async (req, res) => {
         console.log(primaryArtistArray)
 
         if (primaryArtistArray.length > 3 || featuringArtistArray.length > 10) {
-            return res.status(400).json({ message: 'Invalid input. primaryArtist should have at most 3 elements and featuringArtist should have at most 10 elements.' });
+            const RESPONSE = { message: 'Invalid input. primaryArtist should have at most 3 elements and featuringArtist should have at most 10 elements' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(400).json(RESPONSE);
         }
 
         // to create a new release with the provided fields
@@ -53,16 +65,26 @@ exports.addRelease2 = async (req, res) => {
         // to save the release object to the database
         await release.save();
 
-        return res.status(201).json({ message: 'Release 2 added successfully.', release });
+        const RESPONSE = { message: 'Release 2 added successfully.', release };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(201).json(RESPONSE);
     } catch (error) {
-        console.error('Error adding release:', error);
-        return res.status(500).json({ message: 'Internal server error. Check console.' });
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        res.status(500).json(RESPONSE);
     }
 };
 
 // for all AddRelease2 records
 exports.getRelease2 = async (req, res) => {
     try {
+
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
         // to retrieve all Release2 records with the specified fields
         const releases = await AllModels.addRelease2Model.findAll();
         if (releases) {
@@ -117,10 +139,13 @@ exports.getRelease2 = async (req, res) => {
             }
         }
 
-        return res.status(200).json(releases);
+        const RESPONSE = releases;
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
     } catch (error) {
-        console.error('Error retrieving Release2:', error);
-        return res.status(500).json({ message: 'Internal server error.' });
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        res.status(500).json(RESPONSE);
     }
 };
 
@@ -129,10 +154,17 @@ exports.getRelease2sel = async (req, res) => {
     try {
         const { id } = req.params;
 
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
         // Check if ID is provided
         if (!id) {
-            logger.writeLog(req, { message: 'ID is required.' }, 'view', 'admin')
-            return res.status(400).json({ message: 'ID is required.' });
+            const RESPONSE = { message: 'ID is required.' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(400).json(RESPONSE);
         }
 
         // to retrieve Release2 records with the specified ID
@@ -141,8 +173,9 @@ exports.getRelease2sel = async (req, res) => {
         });
 
         if (releases.length === 0) {
-            logger.writeLog(req, { message: 'No records found for the provided ID.' }, 'view', 'admin')
-            return res.status(404).json({ message: 'No records found for the provided ID.' });
+            const RESPONSE = { message: 'No records found for the provided ID.' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
         }
 
         const primaryArtistIds = [];
@@ -185,14 +218,13 @@ exports.getRelease2sel = async (req, res) => {
             release.featuringArtist = featuringArtistNames.map(feat => feat.firstName + " " + feat.lastName)
         }
 
-        logger.writeLog(req, { message: releases }, 'view', 'admin')
-
-        return res.status(200).json(releases);
+        const RESPONSE = releases;
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
     } catch (error) {
-        console.error('Error retrieving Release2:', error);
-        logger.writeLog(req, { message: 'Internal server error.' }, 'view', 'admin')
-
-        return res.status(500).json({ message: 'Internal server error.' });
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        res.status(500).json(RESPONSE);
     }
 };
 
@@ -207,10 +239,19 @@ exports.updateRelease2 = async (req, res) => {
     } = req.body;
 
     try {
+
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
         // to check if the release with the provided id exists
         const release = await AllModels.addRelease2Model.findByPk(id);
         if (!release) {
-            return res.status(404).json({ message: 'Release not found.' });
+            const RESPONSE = { message: 'Release not found.' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
         }
 
         // to check if composer is provided and update the release
@@ -223,7 +264,9 @@ exports.updateRelease2 = async (req, res) => {
             const primaryArtistArray = primaryArtist ? primaryArtist.split(', ').map(item => item.replace(/"/g, '')) : [];
 
             if (primaryArtistArray.length > 3) {
-                return res.status(400).json({ message: 'Invalid input. primaryArtist should have at most 3 elements and featuringArtist should have at most 10 elements.' });
+                const RESPONSE = { message: 'Invalid input. primaryArtist should have at most 3 elements and featuringArtist should have at most 10 elements.' };
+                logger.writeLog(req, RESPONSE, "view", "admin");
+                return res.status(400).json(RESPONSE);
             }
             release.primaryArtist = primaryArtist;
 
@@ -232,7 +275,9 @@ exports.updateRelease2 = async (req, res) => {
             const featuringArtistArray = featuringArtist ? featuringArtist.split(', ').map(item => item.replace(/"/g, '')) : [];
             console.log("the length is : " + featuringArtistArray.length)
             if (featuringArtistArray.length > 10) {
-                return res.status(400).json({ message: 'Invalid input. primaryArtist should have at most 3 elements and featuringArtist should have at most 10 elements.' });
+                const RESPONSE = { message: 'Invalid input. primaryArtist should have at most 3 elements and featuringArtist should have at most 10 elements.' };
+                logger.writeLog(req, RESPONSE, "view", "admin");
+                return res.status(400).json(RESPONSE);
             }
             release.featuringArtist = featuringArtist;
         }
@@ -244,10 +289,13 @@ exports.updateRelease2 = async (req, res) => {
         // to save the updated release object to the database
         await release.save();
 
-        return res.status(200).json({ message: 'Release updated successfully.', release });
+        const RESPONSE = { message: 'Release updated successfully.', release };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
     } catch (error) {
-        console.error('Error updating release:', error);
-        return res.status(500).json({ message: 'Internal server error. Check console.' });
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        res.status(500).json(RESPONSE);
     }
 };
 
@@ -255,20 +303,32 @@ exports.deleteRelease = async (req, res) => {
     const { id } = req.params;
 
     try {
+
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
         // to find the release by ID
         const release = await AllModels.addRelease2Model.findByPk(id);
 
         if (!release) {
-            return res.status(404).json({ message: 'Release not found.' });
+            const RESPONSE = { message: 'Release not found.' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
         }
 
         // to delete the release
         await release.destroy();
 
-        return res.status(200).json({ message: 'Release deleted successfully.' });
+        const RESPONSE = { message: 'Release deleted successfully!' };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
     } catch (error) {
-        console.error('Error deleting release:', error);
-        return res.status(500).json({ message: 'Internal server error. Check console.' });
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        res.status(500).json(RESPONSE);
     }
 };
 
@@ -277,11 +337,17 @@ exports.getUserData = async (req, res) => {
     try {
         const { userId } = req.params;
 
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
         // Check if userId is provided
         if (!userId) {
-            logger.writeLog(req, { message: 'userId is required.' }, 'view', 'admin')
-
-            return res.status(400).json({ message: 'userId is required.' });
+            const RESPONSE = { message: 'userId is required.' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(400).json(RESPONSE);
         }
 
         // to retrieve addRelease1 records associated with the userId
@@ -297,9 +363,9 @@ exports.getUserData = async (req, res) => {
 
         // Check if addRelease1 records exist for the userId
         if (addRelease1Records.length === 0) {
-            logger.writeLog(req, { message: 'No addRelease1 records found for the provided userId.' }, 'view', 'admin')
-
-            return res.status(404).json({ message: 'No addRelease1 records found for the provided userId.' });
+            const RESPONSE = { message: 'No addRelease1 records found for the provided userId.' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
         }
 
         // to retrieve addRelease2 records associated with the addRelease1 ids
@@ -353,13 +419,12 @@ exports.getUserData = async (req, res) => {
             featuringArtistIds.length = 0;
         }
 
-        logger.writeLog(req, userData, 'view', 'admin')
-        return res.status(200).json(userData);
-
+        const RESPONSE = userData;
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
     } catch (error) {
-        console.error('Error retrieving user data:', error);
-        logger.writeLog(req, { message: 'Internal server error.' }, 'view', 'admin')
-
-        return res.status(500).json({ message: 'Internal server error.' });
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        res.status(500).json(RESPONSE);
     }
 };

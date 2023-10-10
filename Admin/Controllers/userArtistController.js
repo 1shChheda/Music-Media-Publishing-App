@@ -15,7 +15,7 @@ exports.addUserArtist = async (req, res) => {
     } = req.body;
 
     try {
-
+        
         // to create a new release with the provided fields
         const artist = await AllModels.userArtistModel.create({
             firstName,
@@ -51,12 +51,13 @@ exports.addUserArtist = async (req, res) => {
             })
         }
 
-        logger.writeLog(req, { message: 'artist added successfully.', artist }, "view", 'admin')
-        return res.status(201).json({ message: 'artist added successfully.', artist });
+        const RESPONSE = { message: 'artist added successfully.', artist };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(201).json(RESPONSE);
     } catch (error) {
-        console.error('Error adding release:', error);
-        logger.writeLog(req, { message: 'Internal server error. check console' }, "view", 'admin')
-        return res.status(500).json({ message: 'Internal server error. check console' });
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(500).json(RESPONSE);
     }
 };
 
@@ -77,10 +78,13 @@ exports.searchArtists = async (req, res) => {
             },
         });
 
-        return res.status(200).json(artists);
+        const RESPONSE = artists
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
     } catch (error) {
-        console.error('Error searching artists:', error);
-        return res.status(500).json({ message: 'Internal server error.' });
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(500).json(RESPONSE);
     }
 };
 
@@ -89,7 +93,7 @@ exports.getAllArtist = async (req, res) => {
         const artist = await AllModels.userArtistModel.findAll();
         const RESPONSE = { artist: artist };
         logger.writeLog(req, RESPONSE, "view", 'admin')
-        res.status(200).json(RESPONSE);
+        return res.status(200).json(RESPONSE);
     } catch (error) {
         const RESPONSE = { error: error.message };
         logger.writeLog(req, RESPONSE, "view", 'admin')

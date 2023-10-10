@@ -1,6 +1,7 @@
 const { validationResult } = require("express-validator");
 const { Op } = require("sequelize");
 const AllModels = require("../../Utils/allModels");
+const logger = require("../../Utils/logger");
 
 exports.addRelease1 = async (req, res) => {
     const {
@@ -17,10 +18,18 @@ exports.addRelease1 = async (req, res) => {
     } = req.body;
 
     try {
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
         // to check if a release with the same song name already exists
         const existingRelease = await AllModels.addRelease1Model.findOne({ where: { songName } });
         if (existingRelease) {
-            return res.status(400).json({ message: 'A release with the same song name already exists.' });
+            const RESPONSE = { message: 'A release with the same song name already exists.' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(400).json(RESPONSE);
         }
 
         // to create a new release with the provided fields
@@ -37,15 +46,26 @@ exports.addRelease1 = async (req, res) => {
             userId,
         });
 
-        return res.status(201).json({ message: 'Release added successfully.', release });
+        const RESPONSE = { message: 'Release added successfully!', release };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(201).json(RESPONSE);
     } catch (error) {
         console.error('Error adding release:', error);
-        return res.status(500).json({ message: 'Internal server error.' });
+        const RESPONSE = { message: 'Internal server error.' };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(500).json(RESPONSE);
     }
 };
 
 exports.getRelease1 = async (req, res) => {
     try {
+
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
         // to retrieve all releases from the database
         const releases = await AllModels.addRelease1Model.findAll({
             include: [
@@ -55,10 +75,14 @@ exports.getRelease1 = async (req, res) => {
             ]
         });
 
-        return res.status(200).json({ releases });
+        const RESPONSE = { releases };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
     } catch (error) {
         console.error('Error retrieving releases:', error);
-        return res.status(500).json({ message: 'Internal server error.' });
+        const RESPONSE = { message: 'Internal server error.' };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(500).json(RESPONSE);
     }
 };
 
@@ -78,10 +102,19 @@ exports.updateRelease1 = async (req, res) => {
     } = req.body;
 
     try {
+
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
         // to check if the release with the provided id exists
         const release = await AllModels.addRelease1Model.findByPk(id);
         if (!release) {
-            return res.status(404).json({ message: 'Release not found.' });
+            const RESPONSE = { message: 'Release not found.' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
         }
 
         // to update the release with the provided fields
@@ -101,10 +134,14 @@ exports.updateRelease1 = async (req, res) => {
             { where: { id } }
         );
 
-        return res.status(200).json({ message: 'Release updated successfully.' });
+        const RESPONSE = { message: 'Release updated successfully!' };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
     } catch (error) {
         console.error('Error updating release:', error);
-        return res.status(500).json({ message: 'Internal server error.' });
+        const RESPONSE = { message: 'Internal server error.' };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(500).json(RESPONSE);
     }
 };
 
@@ -112,18 +149,31 @@ exports.deleteRelease1 = async (req, res) => {
     const { id } = req.params;
 
     try {
+
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
         // to check if the release with the provided id exists
         const release = await AllModels.addRelease1Model.findByPk(id);
         if (!release) {
-            return res.status(404).json({ message: 'Release not found.' });
+            const RESPONSE = { message: 'Release not found.' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
         }
 
         // to delete the release
         await AllModels.addRelease1Model.destroy({ where: { id } });
 
-        return res.status(200).json({ message: 'Release deleted successfully.' });
+        const RESPONSE = { message: 'Release deleted successfully.' };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
     } catch (error) {
         console.error('Error deleting release:', error);
-        return res.status(500).json({ message: 'Internal server error.' });
+        const RESPONSE = { message: 'Internal server error.' };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(500).json(RESPONSE);
     }
 };

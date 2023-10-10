@@ -4,21 +4,39 @@ const path = require('path');
 const { uploadFile } = require("../Middleware/fileUpload");
 const AllModels = require("../../Utils/allModels");
 const { createDirectories } = require('../Middleware/createDirectory');
+const logger = require("../../Utils/logger");
 
 exports.getAssets = async (req, res) => {
     try {
+
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
         // Fetch all assets from the model
         const assets = await AllModels.assetsModel.findAll();
 
-        return res.status(200).json({ assets });
+        const RESPONSE = { assets };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
     } catch (error) {
-        console.error('Error fetching assets:', error);
-        return res.status(500).json({ message: 'Internal server error. Check console.' });
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        res.status(500).json(RESPONSE);
     }
 };
 
 exports.addAssets = async (req, res, next) => {
     try {
+
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
         if (req.files) {
             const artworkFile = req.files.artwork;
             const audioFile = req.files.audio;
@@ -26,21 +44,34 @@ exports.addAssets = async (req, res, next) => {
             // Check if the uploaded artwork file is an image (PNG, JPEG, GIF)
             const allowedArtworkMimeTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
             if (!allowedArtworkMimeTypes.includes(artworkFile.mimetype)) {
-                return res.status(500).json({ error: 'Only image (PNG, JPEG, GIF) files are allowed for artwork.' });
+                const RESPONSE = { error: 'Only image (PNG, JPEG, GIF) files are allowed for artwork.' };
+                logger.writeLog(req, RESPONSE, "view", "admin");
+                return res.status(500).json(RESPONSE);
             }
 
             // Check if the uploaded audio file is an mp3
             if (audioFile.mimetype !== 'audio/mpeg') {
-                return res.status(500).json({ error: 'Only MP3 files are allowed for audio.' });
+                const RESPONSE = { error: 'Only MP3 files are allowed for audio.' };
+                logger.writeLog(req, RESPONSE, "view", "admin");
+                return res.status(500).json(RESPONSE);
             }
 
             // Get the userId from the addRelease1 model based on addRelease1Id
             const addRelease1Id = req.body.addRelease1Id;
             const addRelease1 = await AllModels.addRelease1Model.findByPk(addRelease1Id);
             if (!addRelease1) {
-                return res.status(404).json({ error: 'Add Release 1 not found.' });
+                const RESPONSE = { error: 'Add Release 1 not found.' };
+                logger.writeLog(req, RESPONSE, "view", "admin");
+                return res.status(404).json(RESPONSE);
             }
             const userId = addRelease1.userId;
+
+            const existingRelease = await AllModels.assetsModel.findOne({ where: { addRelease1Id } });
+            if (existingRelease) {
+                const RESPONSE = { message: 'Artwork & Music File already exist for the Particular Release. Kindly Update the Assets if required' };
+                logger.writeLog(req, RESPONSE, "view", "admin");
+                return res.status(400).json(RESPONSE);
+            }
 
             await createDirectories(`Upload/${userId}/addRelease1Id${addRelease1Id}/artwork`);
             await createDirectories(`Upload/${userId}/addRelease1Id${addRelease1Id}/music`);
@@ -57,15 +88,23 @@ exports.addAssets = async (req, res, next) => {
                     addRelease1Id: addRelease1Id,
                 });
 
-                return res.status(200).json({ asset });
+                const RESPONSE = { asset };
+                logger.writeLog(req, RESPONSE, "view", "admin");
+                return res.status(200).json(RESPONSE);
             } else {
-                return res.status(500).json({ error: 'We encountered an error while uploading the files.' });
+                const RESPONSE = { error: 'We encountered an error while uploading the files.' };
+                logger.writeLog(req, RESPONSE, "view", "admin");
+                return res.status(500).json(RESPONSE);
             }
         }
 
-        return res.status(400).json({ error: 'No files were uploaded.' });
+        const RESPONSE = { error: 'No files were uploaded.' };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(400).json(RESPONSE);
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        res.status(500).json(RESPONSE);
     }
 };
 
@@ -73,15 +112,25 @@ exports.updateAsset = async (req, res) => {
     try {
         const { assetId } = req.params;
 
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
         // Check if assetId is provided
         if (!assetId) {
-            return res.status(400).json({ error: 'assetId is required.' });
+            const RESPONSE = { error: 'assetId is required.' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(400).json(RESPONSE);
         }
 
         // Find the asset by assetId
         const asset = await AllModels.assetsModel.findByPk(assetId);
         if (!asset) {
-            return res.status(404).json({ error: 'Asset not found.' });
+            const RESPONSE = { error: 'Asset not found.' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
         }
 
         // Update the fields
@@ -91,7 +140,9 @@ exports.updateAsset = async (req, res) => {
         const addRelease1Id = req.body.addRelease1Id;
         const addRelease1 = await AllModels.addRelease1Model.findByPk(addRelease1Id);
         if (!addRelease1) {
-            return res.status(404).json({ error: 'Add Release 1 not found.' });
+            const RESPONSE = { error: 'Add Release 1 not found.' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
         }
         const userId = addRelease1.userId;
 
@@ -107,9 +158,13 @@ exports.updateAsset = async (req, res) => {
         // Save the updated asset
         await asset.save();
 
-        return res.status(200).json({ asset });
+        const RESPONSE = { asset };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        res.status(500).json(RESPONSE);
     }
 };
 
@@ -117,22 +172,36 @@ exports.deleteAsset = async (req, res) => {
     try {
         const { assetId } = req.params;
 
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
         // Check if assetId is provided
         if (!assetId) {
-            return res.status(400).json({ error: 'assetId is required.' });
+            const RESPONSE = { error: 'assetId is required.' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(400).json(RESPONSE);
         }
 
         // Find the asset by assetId
         const asset = await AllModels.assetsModel.findByPk(assetId);
         if (!asset) {
-            return res.status(404).json({ error: 'Asset not found.' });
+            const RESPONSE = { error: 'Asset not found.' };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
         }
 
         // Delete the asset
         await asset.destroy();
 
-        return res.status(200).json({ message: 'Asset deleted successfully.' });
+        const RESPONSE = { message: 'Asset Deleted successfully!' };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        res.status(500).json(RESPONSE);
     }
 };

@@ -4,37 +4,65 @@ const logger = require('../../Utils/logger')
 exports.ViewMood = async (req, res, next) => {
     try {
 
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
         const mood = await AllModels.moodModel.findAll({
             attributes: ["id", "mood"],
         });
 
-        logger.writeLog(req, { mood: mood }, "view", 'admin');
-        res.status(200).json({ mood: mood });
-
+        const RESPONSE = { mood: mood };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
     } catch (error) {
-        logger.writeLog(req, { error: error.message }, "view", 'admin');
-        res.status(500).json({ error: error.message });
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(500).json(RESPONSE);
     }
 };
 
 exports.AddMood = async (req, res, next) => {
     try {
-        await AllModels.moodModel.create({
-            mood: req.body.mood,
+
+        const { mood } = req.body;
+        if (!req.is_admin_exist) {
+            const RESPONSE = { error: "Admin Not Found" };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(404).json(RESPONSE);
+        }
+
+        const existingMood = await AllModels.moodModel.findOne({
+            where: {
+                mood: mood
+            }
         });
 
-        logger.writeLog(req, { message: "Mood has been Added" }, "view", 'admin');
-        res.status(200).json({ message: "Mood has been Added" });
+        if (existingMood) {
+            const RESPONSE = { message: `${existingMood.dataValues.mood} mood already exists!` };
+            logger.writeLog(req, RESPONSE, "view", "admin");
+            return res.status(409).json(RESPONSE);
+        }
 
+        const newMood = await AllModels.moodModel.create({
+            mood: mood,
+        });
+
+        const RESPONSE = { message: "Mood has been Added!", newMood }
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(200).json(RESPONSE);
     } catch (error) {
-        logger.writeLog(req, { error: error.message }, "view", 'admin');
-        res.status(500).json({ error: error.message });
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(500).json(RESPONSE);
     }
 };
 
 exports.UpdateMood = async (req, res, next) => {
     try {
-        await AllModels.moodModel.update(
+        const updatedMood = await AllModels.moodModel.update(
             {
                 mood: req.body.mood,
             },
@@ -45,12 +73,13 @@ exports.UpdateMood = async (req, res, next) => {
             }
         );
 
-        logger.writeLog(req, { message: "Mood has been Updated" }, "view", 'admin');
-        res.status(200).json({ message: "Mood has been Updated" });
-
+        const RESPONSE = { message: "Mood has been Updated!" };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        res.status(200).json(RESPONSE);
     } catch (error) {
-        logger.writeLog(req, { error: error.message }, "view", 'admin');
-        res.status(500).json({ error: error.message });
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(500).json(RESPONSE);
     }
 };
 
@@ -62,11 +91,12 @@ exports.DeleteMood = async (req, res, next) => {
             },
         });
 
-        logger.writeLog(req, { message: "Mood has been Deleted" }, "view", 'admin');
-        res.status(200).json({ message: "Mood has been Deleted" });
-
+        const RESPONSE = { message: "Mood has been Deleted!" }
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        res.status(200).json(RESPONSE);
     } catch (error) {
-        logger.writeLog(req, { error: error.message }, "view", 'admin');
-        res.status(500).json({ error: error.message });
+        const RESPONSE = { error: error.message };
+        logger.writeLog(req, RESPONSE, "view", "admin");
+        return res.status(500).json(RESPONSE);
     }
 };
